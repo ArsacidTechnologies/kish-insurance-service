@@ -58,7 +58,7 @@ The aim of this project is to provide health insurance costs from insurance comp
 
 ### step1:
 
-docker compose --build
+docker compose up -d --build
 
 ### step2:
 

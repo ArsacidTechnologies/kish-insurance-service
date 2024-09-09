@@ -1,0 +1,44 @@
+version: "3.7"
+
+services:
+  kish-insurance-service:
+    image: ${DOCKER_REGISTRY-}kishinsuranceservice
+    build:
+      context: kish-insurence-services
+      dockerfile: Dockerfile
+    networks:
+      - db
+  MsSqlDb:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: MsSql2022Db-insurence
+    user: root
+    environment:
+      MSSQL_SA_PASSWORD: MehranSafePassword
+      ACCEPT_EULA: "Y"
+    restart: always
+    ports:
+      - 1433:1433
+    volumes:
+      - sqldb:/var/opt/mssql/data
+    networks:
+      - db
+  redis:
+    container_name: redis-insurence
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis-data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - db
+volumes:
+  sqldb:
+networks:
+  db:
+    driver: bridge
