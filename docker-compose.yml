@@ -8,18 +8,17 @@ services:
       dockerfile: Dockerfile
     networks:
       - db
-  MsSqlDb:
+  sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: MsSql2022Db-insurence
-    user: root
+    container_name: sql-server
+    hostname: sql-server
     environment:
-      MSSQL_SA_PASSWORD: MehranSafePassword
-      ACCEPT_EULA: "Y"
-    restart: always
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Mehran@SQRootPass
     ports:
-      - 1433:1433
+      - "1433:1433"
     volumes:
-      - sqldb:/var/opt/mssql/data
+      - sqlserver_data:/var/opt/mssql
     networks:
       - db
   redis:
@@ -39,6 +38,7 @@ services:
       - db
 volumes:
   sqldb:
+  sqlserver_data:
 networks:
   db:
     driver: bridge
