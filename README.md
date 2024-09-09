@@ -58,11 +58,26 @@ The aim of this project is to provide health insurance costs from insurance comp
 
 ### step1:
 
+```
 docker compose up -d --build
+```
+
+or
+
+```
+docker compose up -d
+```
 
 ### step2:
 
-docker compose up -d
+database migration:
+
+ensure database is up
+
+```
+cd ./kish-insurence-services
+dotnet ef database update
+```
 
 ---
 
