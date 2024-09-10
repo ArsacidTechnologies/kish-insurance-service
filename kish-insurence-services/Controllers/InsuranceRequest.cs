@@ -21,7 +21,8 @@ namespace kish_insurance_service.Controllers
             try
             {
                 var requestId = await _insuranceRequestService.SubmitInsuranceRequestAsync(requestDto);
-                return Ok(new { message = "Insurance request submitted successfully", requestId });
+                // Return 201 Created with a location header pointing to the created resource
+                return CreatedAtAction(nameof(GetInsuranceRequestById), new { id = requestId }, new { message = "Insurance request submitted successfully", requestId });
             }
             catch (Exception ex)
             {
