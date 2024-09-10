@@ -1,0 +1,72 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Mehran@SQRootPass
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "exit 0" 
+          --health-interval 10s
+          --health-retries 5
+          --health-timeout 5s
+          --health-start-period 30s
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml up -d
+
+      - name: Run Tests
+        run: |
+          docker-compose -f docker-compose.yml exec kish-insurance-service dotnet test --no-restore --verbosity normal
+
+      - name: Push Docker image to DockerHub
+        run: |
+          docker tag kishinsuranceservice ${{ secrets.DOCKER_USERNAME }}/kishinsuranceservice:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/kishinsuranceservice:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy using Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up -d --build
