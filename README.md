@@ -85,26 +85,26 @@ dotnet ef database update
 
 ### Submitting a request:
 
-- [X] POST {{api-endpoint}}/set-order/
+- [x] POST {{api-endpoint}}/set-order/
 
 Accept:application/json
 
 ### Retrieving the list of requests:
 
-- [X] GET {{api-endpoint}}/get-requests/
+- [x] GET {{api-endpoint}}/get-requests/
 
 Accept:application/json
 //get order by id
 
 ### Retrieving a specific Request by id:
 
-- [X] GET {{api-endpoint}}/get-request/id
-  Accept:application/json
+- [x] GET {{api-endpoint}}/get-request/id
+      Accept:application/json
 
 ### CRUD of CoverageTypes:
 
-- [X] GET/POST/PUT/DELTE {{api-endpoint}}/get-request/{id}
-- [X] GET {{api-endpoint}}/all-coverage-types/
+- [x] GET/POST/PUT/DELTE {{api-endpoint}}/get-request/{id}
+- [x] GET {{api-endpoint}}/all-coverage-types/
 
 Accept:application/json
 
@@ -159,7 +159,6 @@ dotnet dev-certs https --trust
 ## Architecture:
 
 ![1725892812267](image/README/1725892812267.png)
-
 
 ## Test Results :
 
