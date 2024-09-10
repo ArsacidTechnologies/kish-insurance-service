@@ -29,12 +29,15 @@ namespace kish_insurance_service.Controllers
             }
         }
 
-        // GET: api/InsuranceRequest
-        [HttpGet]
-        public async Task<ActionResult<List<ReadInsuranceRequestDto>>> GetAllInsuranceRequests()
+        [HttpGet("requests")]
+        public async Task<IActionResult> GetInsuranceRequests(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string title = null,
+            [FromQuery] int? coverageTypeId = null)
         {
-            var insuranceRequests = await _insuranceRequestService.GetAllInsuranceRequestsAsync();
-            return Ok(insuranceRequests);
+            var result = await _insuranceRequestService.GetPaginatedInsuranceRequestsAsync(pageNumber, pageSize, title, coverageTypeId);
+            return Ok(result);
         }
 
         // GET: api/insurance-request/{id}
@@ -51,7 +54,13 @@ namespace kish_insurance_service.Controllers
             return Ok(insuranceRequest);
         }
 
-
+        // GET: api/InsuranceRequest/all
+        [HttpGet("all")]
+        public async Task<ActionResult<List<ReadInsuranceRequestDto>>> GetAllInsuranceRequests()
+        {
+            var insuranceRequests = await _insuranceRequestService.GetAllInsuranceRequestsAsync();
+            return Ok(insuranceRequests);
+        }
 
     }
 }

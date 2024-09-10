@@ -69,5 +69,41 @@ namespace kish_insurance_service.Services
 
             return _mapper.Map<ReadInsuranceRequestDto>(insuranceRequest);
         }
+
+        // Get paginated insurance requests
+        public async Task<PaginatedResultDto<ReadInsuranceRequestDto>> GetPaginatedInsuranceRequestsAsync(
+            int pageNumber, int pageSize, string title = null, int? coverageTypeId = null)
+        {
+            var query = _context.InsuranceRequests
+                                .Include(r => r.Coverages)
+                                .ThenInclude(c => c.CoverageType)
+                                .AsQueryable();
+
+            // Filtering by Title
+            if (!string.IsNullOrEmpty(title))
+            {
+                query = query.Where(r => r.Title.Contains(title));
+            }
+
+            // Filtering by CoverageTypeId
+            if (coverageTypeId.HasValue)
+            {
+                query = query.Where(r => r.Coverages.Any(c => c.CoverageTypeId == coverageTypeId));
+            }
+
+            // Get total count before pagination
+            var totalCount = await query.CountAsync();
+
+            // Pagination
+            var insuranceRequests = await query
+                                          .Skip((pageNumber - 1) * pageSize)
+                                          .Take(pageSize)
+                                          .ToListAsync();
+
+            // Map to DTO
+            var insuranceRequestDtos = _mapper.Map<List<ReadInsuranceRequestDto>>(insuranceRequests);
+
+            return new PaginatedResultDto<ReadInsuranceRequestDto>(insuranceRequestDtos, totalCount, pageNumber, pageSize);
+        }
     }
 }

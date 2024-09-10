@@ -7,6 +7,8 @@ namespace kish_insurance_service.Services
         Task<int> SubmitInsuranceRequestAsync(InsuranceRequestDTO requestDto);
         Task<ReadInsuranceRequestDto> GetInsuranceRequestByIdAsync(int id);
         Task<List<ReadInsuranceRequestDto>> GetAllInsuranceRequestsAsync();
+        Task<PaginatedResultDto<ReadInsuranceRequestDto>> GetPaginatedInsuranceRequestsAsync(
+            int pageNumber, int pageSize, string title = null, int? coverageTypeId = null);
 
     }
 }
