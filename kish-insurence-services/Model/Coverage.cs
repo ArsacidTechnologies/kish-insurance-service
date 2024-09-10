@@ -10,17 +10,15 @@ namespace kish_insurance_service.Models
 
         [Required]
         [ForeignKey("CoverageType")]
-        public int Type { get; set; }
+        public int CoverageTypeId { get; set; } // change CoverageTypeId to clearly indicate the foreign key
 
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "Capital must be greater than 0")]
         public decimal Capital { get; set; }
 
-        // Foreign key to InsuranceRequest
         [ForeignKey("InsuranceRequest")]
         public int InsuranceRequestId { get; set; }
 
-        // Navigation properties
         public InsuranceRequest InsuranceRequest { get; set; }
         public CoverageType CoverageType { get; set; }
     }
