@@ -1,4 +1,5 @@
 using kish_insurance_service.Models;
+using kish_insurance_service.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace kish_insurance_service
@@ -31,6 +32,9 @@ namespace kish_insurance_service
             modelBuilder.Entity<CoverageType>()
                 .Property(c => c.PremiumRate)
                 .HasColumnType("decimal(5, 4)");
+
+            SeedData.SeedCoverageTypes(modelBuilder);
+
 
             base.OnModelCreating(modelBuilder);
         }
