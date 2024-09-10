@@ -14,7 +14,10 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+     .LogTo(Console.WriteLine, LogLevel.Information)
+           .EnableSensitiveDataLogging()
+    );
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
