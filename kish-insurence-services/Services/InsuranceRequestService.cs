@@ -3,6 +3,8 @@ using AutoMapper;
 using kish_insurance_service.DTOs;
 using kish_insurance_service.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 
 namespace kish_insurance_service.Services
 {
@@ -10,11 +12,14 @@ namespace kish_insurance_service.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
-
-        public InsuranceRequestService(ApplicationDbContext context, IMapper mapper)
+        private readonly IDistributedCache _cache;
+        private const string CacheKeyPrefix = "InsuranceRequest_";
+        public InsuranceRequestService(ApplicationDbContext context, IMapper mapper, IDistributedCache cache)
         {
             _context = context;
             _mapper = mapper;
+            _cache = cache;
+
         }
         //submit Insurance request
         public async Task<int> SubmitInsuranceRequestAsync(InsuranceRequestDTO requestDto)
@@ -25,11 +30,33 @@ namespace kish_insurance_service.Services
             // Validate and process each coverage
             foreach (var coverage in insuranceRequest.Coverages)
             {
+                // Check Redis cache first
+                string cacheKey = $"CoverageType_{coverage.CoverageTypeId}";
+                var cachedCoverageType = await _cache.GetStringAsync(cacheKey);
 
-                var coverageType = await _context.CoverageTypes.FindAsync(coverage.CoverageTypeId);
-                if (coverageType == null)
+                CoverageType coverageType;
+                if (!string.IsNullOrEmpty(cachedCoverageType))
                 {
-                    throw new Exception($"CoverageType with ID {coverage.CoverageTypeId} not found.");
+                    // Deserialize the cached data if found
+                    coverageType = JsonConvert.DeserializeObject<CoverageType>(cachedCoverageType);
+                }
+                else
+                {
+                    // Fetch from the database if not found in cache
+                    coverageType = await _context.CoverageTypes.FindAsync(coverage.CoverageTypeId);
+                    if (coverageType == null)
+                    {
+                        throw new Exception($"CoverageType with ID {coverage.CoverageTypeId} not found.");
+                    }
+
+                    // Cache the retrieved data in Redis
+                    await _cache.SetStringAsync(
+                        cacheKey,
+                        JsonConvert.SerializeObject(coverageType),
+                        new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6) // Cache for 6 hours
+                        });
                 }
 
                 // Ensure capital is within the valid range
