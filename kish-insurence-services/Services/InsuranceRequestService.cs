@@ -16,7 +16,7 @@ namespace kish_insurance_service.Services
             _context = context;
             _mapper = mapper;
         }
-
+        //submit Insurance request
         public async Task<int> SubmitInsuranceRequestAsync(InsuranceRequestDTO requestDto)
         {
             // Create a new InsuranceRequest object using AutoMapper
@@ -44,6 +44,30 @@ namespace kish_insurance_service.Services
             await _context.SaveChangesAsync();
 
             return insuranceRequest.Id;
+        }
+
+        // Get all insurance requests
+        public async Task<List<ReadInsuranceRequestDto>> GetAllInsuranceRequestsAsync()
+        {
+            var insuranceRequests = await _context.InsuranceRequests
+                                                  .Include(r => r.Coverages)
+                                                  .ThenInclude(c => c.CoverageType)
+                                                  .ToListAsync();
+
+            return _mapper.Map<List<ReadInsuranceRequestDto>>(insuranceRequests);
+        }
+
+        // Get insurance request by ID
+        public async Task<ReadInsuranceRequestDto> GetInsuranceRequestByIdAsync(int id)
+        {
+            var insuranceRequest = await _context.InsuranceRequests
+                                                 .Include(r => r.Coverages)
+                                                 .ThenInclude(c => c.CoverageType)
+                                                 .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (insuranceRequest == null) return null;
+
+            return _mapper.Map<ReadInsuranceRequestDto>(insuranceRequest);
         }
     }
 }
