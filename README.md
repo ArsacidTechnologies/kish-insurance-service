@@ -4,49 +4,55 @@
 
 This is just a sample, so the Authentication and Authorization features have been omitted from the implementation.
 
-## Key features :
+---
 
-### **.NET 8 Web API:**
+## **Key Features:**
 
-    The project is built using the latest .NET 8 Web API for improved performance, security, and scalability.
+#### **.NET 8 Web API:**
 
-### **Dynamic Coverage Management:**
+###### The project is built using the latest .NET 8 Web API for improved performance, security, and scalability.
 
-    Administrators can manage coverage types, including premium rates and capital ranges, dynamically through the database without code changes.
+#### **Dynamic Coverage Management:**
 
-### **Health Insurance Premium Calculation:**
+###### Administrators can manage coverage types, including premium rates and capital ranges, dynamically through the database without code changes.
 
-    The system calculates health insurance premiums based on predefined coverage options selected by the insured.
+#### **Health Insurance Premium Calculation:**
 
-### **API-Driven:**
+###### The system calculates health insurance premiums based on predefined coverage options selected by the insured.
 
-    Provides RESTful APIs for submitting insurance requests, retrieving requests, and managing coverage types.
+#### **Transaction Handling:**
 
-### **Query and Pagination Support:**
+###### Insurance request submissions use database transactions to ensure data consistency and reliability.
 
-    Allows users to search insurance requests with query filters and paginated results for better performance and usability.
+#### **API-Driven:**
 
-### **Database and Caching:**
+###### Provides RESTful APIs for submitting insurance requests, retrieving requests, and managing coverage types.
 
-    Utilizes MS SQL Server for the database and Redis for caching data to enhance performance, both running in Docker containers.
+#### **Query and Pagination Support:**
 
-### **Validation of Capital Amounts:**
+###### Allows users to search insurance requests with query filters and paginated results for better performance and usability.
 
-    Ensures that the entered capital for each coverage type falls within the defined minimum and maximum range.
+#### **Database and Caching:**
+
+###### Utilizes MS SQL Server for the database and Redis for caching data to enhance performance, both running in Docker containers.
+
+#### **Validation of Capital Amounts:**
+
+###### Ensures that the entered capital for each coverage type falls within the defined minimum and maximum range.
 
 ### **Data Persistence:**
 
-    All insurance requests and coverages are stored in the database for future retrieval and auditing.
+All insurance requests and coverages are stored in the database for future retrieval and auditing.
 
 ### **Dockerized Deployment:**
 
-    Easily deploy the service using Docker with`docker-compose`, ensuring a consistent and reproducible environment.
+Easily deploy the service using Docker with `docker-compose`, ensuring a consistent and reproducible environment.
 
 ### **SSL Certificate Generation:**
 
-    Provides steps for generating SSL certificates using OpenSSL for secure HTTPS communication.
+Provides steps for generating SSL certificates using OpenSSL for secure HTTPS communication.
 
----
+4o
 
 ## Service Objective:
 
@@ -81,34 +87,78 @@ dotnet ef database update
 
 ---
 
-## API's:
+---
 
-### Submitting a request:
-
-- [x] POST {{api-endpoint}}/set-order/
-
-Accept:application/json
-
-### Retrieving the list of requests:
-
-- [x] GET {{api-endpoint}}/get-requests/
-
-Accept:application/json
-//get order by id
-
-### Retrieving a specific Request by id:
-
-- [x] GET {{api-endpoint}}/get-request/id
-      Accept:application/json
-
-### CRUD of CoverageTypes:
-
-- [x] GET/POST/PUT/DELTE {{api-endpoint}}/get-request/{id}
-- [x] GET {{api-endpoint}}/all-coverage-types/
-
-Accept:application/json
+## **API Endpoints:**
 
 ---
+
+### **Submitting an Insurance Request:**
+
+- **POST** `{{api-endpoint}}/api/InsuranceRequest/submit-request`
+  - **Accept:** application/json
+  - **Request Body:**
+    - InsuranceRequestDTO (title and coverages)
+
+---
+
+### **Retrieving the List of Insurance Requests:**
+
+- **GET** `{{api-endpoint}}/api/InsuranceRequest/requests`
+  - **Query Parameters:**
+    - `pageNumber`: integer (default: 1)
+    - `pageSize`: integer (default: 10)
+    - `title`: string (optional)
+    - `coverageTypeId`: integer (optional)
+  - **Accept:** application/json
+
+---
+
+### **Retrieving All Insurance Requests:**
+
+- **GET** `{{api-endpoint}}/api/InsuranceRequest/all`
+  - **Accept:** application/json
+
+---
+
+### **Retrieving a Specific Insurance Request by ID:**
+
+- **GET** `{{api-endpoint}}/api/InsuranceRequest/{id}`
+  - **Path Parameter:**
+    - `id`: integer (required)
+  - **Accept:** application/json
+
+---
+
+### **Managing Coverage Types (CRUD Operations):**
+
+- **GET** `{{api-endpoint}}/api/CoverageTypes`
+  - **Accept:** application/json
+  - **Response:** Array of CoverageType
+- **POST** `{{api-endpoint}}/api/CoverageTypes`
+  - **Request Body:** CoverageType
+  - **Accept:** application/json
+- **GET** `{{api-endpoint}}/api/CoverageTypes/{id}`
+  - **Path Parameter:**
+    - `id`: integer (required)
+  - **Accept:** application/json
+- **PUT** `{{api-endpoint}}/api/CoverageTypes/{id}`
+  - **Path Parameter:**
+    - `id`: integer (required)
+  - **Request Body:** CoverageType
+  - **Accept:** application/json
+- **DELETE** `{{api-endpoint}}/api/CoverageTypes/{id}`
+  - **Path Parameter:**
+    - `id`: integer (required)
+  - **Accept:** application/json
+
+---
+
+### **Weather Forecast: _just for health check_**
+
+- **GET** `{{api-endpoint}}/WeatherForecast`
+  - **Accept:** application/json
+  - **Response:** Array of WeatherForecast
 
 ## DB Tables:
 
@@ -121,12 +171,13 @@ Accept:application/json
 
 #### Table Coverages:
 
-| Name               | Data Type      | Constraints                            |
-| ------------------ | -------------- | -------------------------------------- |
-| Id                 | int            | Primary Key, Identity                  |
-| Type               | int            | Not Null (Foreign Key to CoverageType) |
-| Capital            | decimal(18, 2) | Not Null                               |
-| InsuranceRequestId | int            | Foreign Key (FK toInsuranceRequests)   |
+| Name               | Data Type      | Constraints                              |
+| ------------------ | -------------- | ---------------------------------------- |
+| Id                 | int            | Primary Key, Identity                    |
+| Type               | int            | Not Null (Foreign Key to CoverageType)   |
+| Capital            | decimal(18, 2) | Not Null                                 |
+| InsuranceRequestId | int            | Foreign Key (FK toInsuranceRequests)     |
+| Premium            | decimal(18, 2) | Not Null (Calculated from `PremiumRate`) |
 
 #### Table CoverageTypes:
 
