@@ -57,7 +57,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          docker-compose -f docker-compose.yml exec kish-insurance-service dotnet test --no-restore --verbosity normal
+          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet test --no-restore --verbosity normal
 
       - name: Push Docker image to DockerHub
         run: |
