@@ -10,7 +10,7 @@ namespace kish_insurance_service.Models
 
         [Required]
         [ForeignKey("CoverageType")]
-        public int CoverageTypeId { get; set; } // change CoverageTypeId to clearly indicate the foreign key
+        public int CoverageTypeId { get; set; }
 
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "Capital must be greater than 0")]
@@ -21,5 +21,9 @@ namespace kish_insurance_service.Models
 
         public InsuranceRequest InsuranceRequest { get; set; }
         public CoverageType CoverageType { get; set; }
+
+        // New Premium property to store the calculated premium
+        public decimal Premium { get; set; }
     }
+
 }

@@ -14,22 +14,32 @@ namespace kish_insurance_service.Controllers
         {
             _insuranceRequestService = insuranceRequestService;
         }
-        //POST: api/submit-request
+
+        // POST: api/InsuranceRequest/submit-request
         [HttpPost("submit-request")]
         public async Task<IActionResult> SubmitInsuranceRequest([FromBody] InsuranceRequestDTO requestDto)
         {
             try
             {
-                var requestId = await _insuranceRequestService.SubmitInsuranceRequestAsync(requestDto);
-                // Return 201 Created with a location header pointing to the created resource
-                return CreatedAtAction(nameof(GetInsuranceRequestById), new { id = requestId }, new { message = "Insurance request submitted successfully", requestId });
+                // Call the service to submit the insurance request
+                var response = await _insuranceRequestService.SubmitInsuranceRequestAsync(requestDto);
+
+                // Return a 201 Created response with the RequestId, TotalPremium, and UserMessage
+                return StatusCode(201, new
+                {
+                    message = "Insurance request submitted successfully",
+                    response.RequestId,
+                    response.TotalPremium,
+                    UserMessage = $"درخواست شما با موفقیت ثبت شد  میزان پوشش {response.TotalPremium}"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // If any error occurs, return a 400 Bad Request with the error message
+                return BadRequest(new { message = ex.Message });
             }
         }
-
+        // GET: api/InsuranceRequest/requests
         [HttpGet("requests")]
         public async Task<IActionResult> GetInsuranceRequests(
             [FromQuery] int pageNumber = 1,

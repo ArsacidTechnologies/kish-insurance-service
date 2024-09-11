@@ -5,6 +5,7 @@ using kish_insurance_service.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace kish_insurance_service.Services
 {
@@ -22,57 +23,70 @@ namespace kish_insurance_service.Services
 
         }
         //submit Insurance request
-        public async Task<int> SubmitInsuranceRequestAsync(InsuranceRequestDTO requestDto)
+        public async Task<InsuranceRequestResponseDto> SubmitInsuranceRequestAsync(InsuranceRequestDTO requestDto)
         {
-            // Create a new InsuranceRequest object using AutoMapper
-            var insuranceRequest = _mapper.Map<InsuranceRequest>(requestDto);
-
-            // Validate and process each coverage
-            foreach (var coverage in insuranceRequest.Coverages)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                // Check Redis cache first
-                string cacheKey = $"CoverageType_{coverage.CoverageTypeId}";
-                var cachedCoverageType = await _cache.GetStringAsync(cacheKey);
+                // Create a new insurance request
+                var insuranceRequest = new InsuranceRequest
+                {
+                    Title = requestDto.Title,
+                    Coverages = new List<Coverage>()
+                };
 
-                CoverageType coverageType;
-                if (!string.IsNullOrEmpty(cachedCoverageType))
+                decimal totalPremium = 0;
+
+                // Loop through the coverages and calculate the premium for each one
+                foreach (var coverageDto in requestDto.Coverages)
                 {
-                    // Deserialize the cached data if found
-                    coverageType = JsonConvert.DeserializeObject<CoverageType>(cachedCoverageType);
-                }
-                else
-                {
-                    // Fetch from the database if not found in cache
-                    coverageType = await _context.CoverageTypes.FindAsync(coverage.CoverageTypeId);
+                    var coverageType = await _context.CoverageTypes.FindAsync(coverageDto.CoverageTypeId);
                     if (coverageType == null)
                     {
-                        throw new Exception($"CoverageType with ID {coverage.CoverageTypeId} not found.");
+                        throw new Exception("Invalid coverage type");
                     }
 
-                    // Cache the retrieved data in Redis
-                    await _cache.SetStringAsync(
-                        cacheKey,
-                        JsonConvert.SerializeObject(coverageType),
-                        new DistributedCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6) // Cache for 6 hours
-                        });
+                    // Validate the capital is within the allowed range
+                    if (coverageDto.Capital < coverageType.MinCapital || coverageDto.Capital > coverageType.MaxCapital)
+                    {
+                        throw new Exception($"Capital for {coverageType.Name} should be between {coverageType.MinCapital} and {coverageType.MaxCapital}.");
+                    }
+
+                    // Calculate premium: Premium = Capital * PremiumRate
+                    var premium = coverageDto.Capital * coverageType.PremiumRate;
+                    totalPremium += premium;
+
+                    // Add the coverage with the calculated premium
+                    var coverage = new Coverage
+                    {
+                        CoverageTypeId = coverageDto.CoverageTypeId,
+                        Capital = coverageDto.Capital,
+                        Premium = premium, // Storing calculated premium
+                    };
+
+                    insuranceRequest.Coverages.Add(coverage);
                 }
 
-                // Ensure capital is within the valid range
-                if (coverage.Capital < coverageType.MinCapital || coverage.Capital > coverageType.MaxCapital)
+                // Save the insurance request and its coverages
+                _context.InsuranceRequests.Add(insuranceRequest);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Create the response DTO
+                var response = new InsuranceRequestResponseDto
                 {
-                    throw new Exception($"Capital for {coverageType.Name} should be between {coverageType.MinCapital} and {coverageType.MaxCapital}.");
-                }
+                    RequestId = insuranceRequest.Id,
+                    TotalPremium = totalPremium
+                };
+
+                return response;
             }
-
-            // Save the request to the database
-            _context.InsuranceRequests.Add(insuranceRequest);
-            await _context.SaveChangesAsync();
-
-            return insuranceRequest.Id;
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
-
         // Get all insurance requests
         public async Task<List<ReadInsuranceRequestDto>> GetAllInsuranceRequestsAsync()
         {

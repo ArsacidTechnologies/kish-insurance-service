@@ -61,7 +61,7 @@ public class InsuranceRequestApiIntegrationTests : IClassFixture<WebApplicationF
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Type", content); // Check if the exception message is in the response
+        Assert.Contains("Invalid coverage type", content); // Check if the exception message is in the response
     }
     [Fact]
     public async Task SubmitInsuranceRequest_ShouldReturnBadRequest_WhenCapitalOutOfRange()

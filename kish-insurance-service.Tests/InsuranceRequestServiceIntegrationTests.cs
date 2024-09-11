@@ -82,10 +82,10 @@ public class InsuranceRequestServiceIntegrationTests : IClassFixture<DatabaseFix
         };
 
         // Act
-        var result = await _service.SubmitInsuranceRequestAsync(insuranceRequestDto);
+        var InsuranceRequestResponseDto = await _service.SubmitInsuranceRequestAsync(insuranceRequestDto);
 
         // Assert
-        var savedRequest = await _context.InsuranceRequests.FindAsync(result);
+        var savedRequest = await _context.InsuranceRequests.FindAsync(InsuranceRequestResponseDto.RequestId);
         Assert.NotNull(savedRequest);
         Assert.Equal("Test Request", savedRequest.Title);
         Assert.Single(savedRequest.Coverages);
