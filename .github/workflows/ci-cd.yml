@@ -37,11 +37,11 @@ jobs:
 
       - name: Build and Run Tests
         run: |
-          # Ensure build stage for kish-insurance-service.Tests
-          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet build /src/kish-insurance-service.Tests/kish-insurance-service.Tests.csproj --no-restore
+          # Build the test project
+          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet build /app/kish-insurance-service.Tests/kish-insurance-service.Tests.csproj --no-restore
 
-          # Run the tests from kish-insurance-service.Tests
-          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet test /src/kish-insurance-service.Tests/kish-insurance-service.Tests.csproj --no-restore --verbosity normal
+          # Run the tests
+          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet test /app/kish-insurance-service.Tests/kish-insurance-service.Tests.csproj --no-restore --verbosity normal
 
       - name: Push Docker image to DockerHub
         run: |
