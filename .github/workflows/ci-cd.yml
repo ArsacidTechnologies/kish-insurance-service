@@ -12,26 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # services:
-    #   sqlserver:
-    #     image: mcr.microsoft.com/mssql/server:2022-latest
-    #     env:
-    #       ACCEPT_EULA: Y
-    #       SA_PASSWORD: Mehran@SQRootPass
-    #     ports:
-    #       - 1433:1433
-    #     options: >-
-    #       --health-cmd "exit 0"
-    #       --health-interval 10s
-    #       --health-retries 5
-    #       --health-timeout 5s
-    #       --health-start-period 30s
-
-    #   redis:
-    #     image: redis:latest
-    #     ports:
-    #       - 6379:6379
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -50,14 +30,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Build and start services
         run: |
           docker-compose -f docker-compose.yml build
           docker-compose -f docker-compose.yml up -d
 
-      - name: Run Tests
+      - name: Build and Run Tests
         run: |
-          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet test --no-restore --verbosity normal
+          # Ensure build stage for kish-insurance-service.Tests
+          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet build /src/kish-insurance-service.Tests/kish-insurance-service.Tests.csproj --no-restore
+
+          # Run the tests from kish-insurance-service.Tests
+          docker-compose -f docker-compose.yml exec -T kish-insurance-service dotnet test /src/kish-insurance-service.Tests/kish-insurance-service.Tests.csproj --no-restore --verbosity normal
 
       - name: Push Docker image to DockerHub
         run: |
